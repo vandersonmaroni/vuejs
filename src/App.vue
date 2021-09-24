@@ -1,64 +1,83 @@
 <template>
-  <div>
-    <h1>{{ titulo }}</h1>
-    <url>
-      <li v-for="foto of fotos">
-        <img :src="foto.url" :alt="foto.titulo" />
+  <div class="corpo">
+    <h1 class="centralizado">{{ titulo }}</h1>
+
+    <input
+      type="search"
+      class="filtro"
+      v-on:input="filtro = $event.target.value"
+      placeholder="filtre por parte do titulo"
+    />
+    <ul class="lista-fotos">
+      <li class="lista-fotos-item" v-for="foto of fotosComFiltro">
+        <meu-painel :titulo="foto.titulo">
+          <img class="imagem-responsiva" :src="foto.url" :alt="foto.titulo" />
+        </meu-painel>
       </li>
-    </url>
+    </ul>
   </div>
 </template>
 
 <script>
+import Painel from "./components/shared/painel/Painel.vue";
+
 export default {
-  name: "app",
+  components: {
+    "meu-painel": Painel,
+  },
   data() {
     return {
       titulo: "Cachorro",
-      fotos: [
-        {
-          url: "https://s2.glbimg.com/slaVZgTF5Nz8RWqGrHRJf0H1PMQ=/0x0:800x450/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_59edd422c0c84a879bd37670ae4f538a/internal_photos/bs/2019/U/e/NTegqdSe6SoBAoQDjKZA/cachorro.jpg",
-          titulo: "cachorro",
-        },
-        {
-          url: "https://s2.glbimg.com/slaVZgTF5Nz8RWqGrHRJf0H1PMQ=/0x0:800x450/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_59edd422c0c84a879bd37670ae4f538a/internal_photos/bs/2019/U/e/NTegqdSe6SoBAoQDjKZA/cachorro.jpg",
-          titulo: "cachorro",
-        },
-      ],
+      fotos: [],
+      filtro: "",
     };
   },
-  created(){
-    alert('inicializando a aplicação')
-  }
+
+  computed: {
+    fotosComFiltro() {
+      if (this.filtro) {
+        let exp = new RegExp(this.filtro.trim(), "i");
+        return this.fotos.filter((foto) => exp.test(foto.titulo));
+      } else {
+        return this.fotos;
+      }
+    },
+  },
+
+  created() {
+    this.$http
+      .get("http://localhost:3000/v1/fotos")
+      .then((res) => res.json())
+      .then((fotos) => ((this.fotos = fotos), (err) => console.log(err)));
+  },
 };
 </script>
 
 <style>
-#app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.corpo {
+  font-family: Helvetica, sans-serif;
+  width: 96%;
+  margin: 0 auto;
+}
+
+.centralizado {
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
 }
 
-h1,
-h2 {
-  font-weight: normal;
+.lista-fotos {
+  list-style: none;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
+.lista-fotos .lista-fotos-item {
   display: inline-block;
-  margin: 0 10px;
 }
 
-a {
-  color: #42b983;
+.imagem-responsiva {
+  width: 100%;
+}
+
+.filtro {
+  display: block;
+  width: 100%;
 }
 </style>
